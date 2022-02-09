@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  db_housin:
+    image: mysql:8.0
+    container_name: db_housin
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=wordpress
+    volumes:
+      - ./dbdata_housin:/var/lib/mysql
+    command: '--default-authentication-plugin=mysql_native_password'
+    networks:
+      - housin-network
+
+  wordpress_housin:
+    depends_on:
+      - db_housin
+    image: wordpress:5.8.2
+    container_name: wordpress_housin
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 9095:80
+    environment:
+      - WORDPRESS_DB_HOST=db_housin:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - ./uploads.ini.housin:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wordpress_housin:/var/www/html
+    networks:
+      - housin-network
+  
+networks:
+  housin-network:
+    driver: bridge  
